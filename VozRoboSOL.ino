@@ -27,23 +27,23 @@ const unsigned long TIEMPO_MAX = 10*60*1000;   // 10 minutos
 HardwareSerial mySerial(1);
 DFRobotDFPlayerMini myDFPlayer;
 
-int totalCanciones = 0;
-int ultimaCancion = -1;
+int totalPistas = 0;
+int ultimaPista = -1;
 unsigned long ultimoTiempo = 0;
 unsigned long intervalo = 0;
 
 // ======================
 // FUNCIONES AUXILIARES
 // ======================
-int leerIndiceCancionAleatoria() {
-  if (totalCanciones <= 1) return 1; // Evitar errores con una sola pista de audio en la SD
+int leerIndicePistaAleatoria() {
+  if (totalPistas <= 1) return 1; // Evitar errores con una sola pista de audio en la SD
 
   int nueva;
   do {
-    nueva = random(1, totalCanciones + 1);  // DFPlayer indexa canciones desde 1
-  } while (nueva == ultimaCancion); //Evita que se elija la pista de audio que se acaba de reproducir
+    nueva = random(1, totalPistas + 1);  // DFPlayer indexa Pistas desde 1
+  } while (nueva == ultimaPista); //Evita que se elija la pista de audio que se acaba de reproducir
 
-  ultimaCancion = nueva;
+  ultimaPista = nueva;
   return nueva;
 }
 
@@ -71,17 +71,21 @@ unsigned long calcularIntervalo() {
 void setup() {
   Serial.begin(115200); //Para mensaje en la consola
   mySerial.begin(9600, SERIAL_8N1, PIN_RX, PIN_TX); //Para el DFPlayer
+  Serial.println("Inicializando modulo de voz robot...");
 
   if (!myDFPlayer.begin(mySerial)) {
     Serial.println("Error inicializando DFPlayer Mini");
     while (true); //para el ESP32 para que no siga adelante
   }
   Serial.println("DFPlayer Mini inicializado.");
+  //myDFPlayer.mp3_set_volume(25);  //0~30
+  //mp3_set_EQ(0);  //no sé si será necesario, probar con altavoces finales 0~5
 
-  totalCanciones = myDFPlayer.readFileCounts(); //para luego usarlo como tope al calcular un peud-aleatorio
-  Serial.printf("Total de canciones: %d\n", totalCanciones); //para comprobar que no esté vacía la SD
+  totalPistas = myDFPlayer.readFileCounts(); //para luego usarlo como tope al calcular un peud-aleatorio
+  Serial.printf("Total de Pistas: %d\n", totalPistas); //para comprobar que no esté vacía la SD
 
   randomSeed(analogRead(PIN_POT)); // inicialización pseudoaleatoria
+  myDFPlayer.play(1);
 }
 
 
@@ -91,9 +95,9 @@ void loop() {
   if (intervalo > 0) {
     unsigned long ahora = millis();
     if (ahora - ultimoTiempo >= intervalo) {
-      int cancion = leerIndiceCancionAleatoria();
-      myDFPlayer.play(cancion);
-      Serial.printf("Reproduciendo canción %d\n", cancion);
+      int pista = leerIndicePistaAleatoria();
+      myDFPlayer.play(pista);  //se podría usar myDFPlayer.playFolder(folderNumber, trackNumber) y tener folders para comportamientos (e.g., sensor de proximidad...)
+      Serial.printf("Reproduciendo canción %d\n", pista);
 
       ultimoTiempo = ahora;
     }
