@@ -1,0 +1,1 @@
+Los archivos en la SD para poder sonar desde el DFPlayer mini deben tener un nombre que los identifique. Se ha elegido que sean nombres con números para que se pueda identificar rápidamente la primera pista (1.mp3 o 01.mp3 o 001.mp3) que es la que suena al iniciar el dispositivo.
